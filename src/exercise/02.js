@@ -17,10 +17,14 @@ function useLocalStorage(
 
   const prevKeyRef = React.useRef(key) // this will referance the privious key always
 
+  // console.log('you tricked me')
+
   React.useEffect(() => {
+    // console.log('pussy')
     const prevKey = prevKeyRef.current
 
     if (key !== prevKey) {
+      console.log('puss')
       localStorage.removeItem(prevKey)
       prevKeyRef.current = key
     }
@@ -31,7 +35,7 @@ function useLocalStorage(
 }
 
 function Greeting({initialName}) {
-  const [name, setName] = useLocalStorage(initialName)
+  const [name, setName] = useLocalStorage('name', initialName)
 
   function handleChange(event) {
     setName(event.target.value)
