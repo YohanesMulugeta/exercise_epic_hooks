@@ -17,16 +17,6 @@ function Child() {
   })
 
   React.useEffect(() => {
-    console.log('%c    Child: useEffect(() => {})', 'color: LightCoral')
-    return () => {
-      console.log(
-        '%c    Child: useEffect(() => {}) cleanup 🧹',
-        'color: LightCoral',
-      )
-    }
-  })
-
-  React.useEffect(() => {
     console.log(
       '%c    Child: useEffect(() => {}, [])',
       'color: MediumTurquoise',
@@ -48,6 +38,16 @@ function Child() {
       )
     }
   }, [count])
+
+  React.useEffect(() => {
+    console.log('%c    Child: useEffect(() => {})', 'color: LightCoral')
+    return () => {
+      console.log(
+        '%c    Child: useEffect(() => {}) cleanup 🧹',
+        'color: LightCoral',
+      )
+    }
+  })
 
   const element = (
     <button onClick={() => setCount(previousCount => previousCount + 1)}>
