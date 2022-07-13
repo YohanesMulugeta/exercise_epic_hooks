@@ -4,35 +4,12 @@
 import * as React from 'react'
 import {useLocalStorageState} from '../utils'
 
-function Board() {
+function Board({squares, onClick}) {
   // -------------------------------------------------------------- custom hook
-  const [squares, setSquares] = useLocalStorageState(
-    'tick',
-    Array(9).fill(null),
-  )
-
-  const winner = calculateWinner(squares)
-  const nextValue = calculateNextValue(squares)
-  const status = calculateStatus(winner, squares, nextValue)
-
-  function selectSquare(i) {
-    const stateCopy = [...squares]
-    const winner = calculateWinner(stateCopy)
-    if (winner || stateCopy[i]) return // ------------------------------------ Guard key
-
-    const nextValue = calculateNextValue(stateCopy)
-    stateCopy[i] = nextValue
-
-    setSquares(stateCopy)
-  }
-
-  function restart() {
-    setSquares(Array(9).fill(null))
-  }
 
   function renderSquare(i) {
     return (
-      <button className="square" onClick={() => selectSquare(i)}>
+      <button className="square" onClick={() => onClick(i)}>
         {squares[i]}
       </button>
     )
@@ -40,8 +17,6 @@ function Board() {
 
   return (
     <div>
-      {/* 🐨 put the status in the div below */}
-      <div className="status">{status}</div>
       <div className="board-row">
         {renderSquare(0)}
         {renderSquare(1)}
@@ -57,18 +32,114 @@ function Board() {
         {renderSquare(7)}
         {renderSquare(8)}
       </div>
-      <button className="restart" onClick={restart}>
-        restart
-      </button>
     </div>
   )
 }
 
+// ------------------------------------------------------------------------------------- HISTORY
+
+function History({squares, setSquares}) {
+  const [historyArray, setHistory] = useLocalStorageState('history', [
+    Array(9).fill(null),
+  ])
+
+  React.useEffect(() => {
+    const checkAllNull = squares.some(square => square !== null)
+    // const checkSimililarity = historyArray.filter(his => {})
+
+    console.log(checkAllNull)
+
+    if (!checkAllNull) setHistory([Array(9).fill(null)])
+    else {
+      const squaresCurrent = [...squares]
+      setHistory([...historyArray, squaresCurrent])
+    }
+  }, [squares])
+
+  function renderHistory() {
+    return historyArray.map((his, i) => {
+      return (
+        <button
+          disabled={i === historyArray.length - 1}
+          key={his}
+          id={i}
+          onClick={() => {
+            setSquares(historyArray[i])
+          }}
+        >
+          Go to{' '}
+          {`${i === 0 ? 'Game Start' : `Move #${i}`}${
+            i === historyArray.length - 1 ? '(Current)' : ''
+          }`}
+        </button>
+      )
+    })
+  }
+
+  console.log(historyArray)
+
+  return renderHistory()
+}
+
+// -------------------------------------------------------------------------------------- GAME
+
 function Game() {
+  // -------------------------------------------------------------------------------- step state
+  const [currentStep, setCurrentStep] = React.useState(0)
+  const [history, setHistory] = React.useState([Array(9).fill(null)])
+
+  const currentSquers = history[currentStep]
+  const winner = calculateWinner(currentSquers)
+  const nextValue = calculateNextValue(currentSquers)
+  const status = calculateStatus(winner, currentSquers, nextValue)
+
+  function selectSquare(i) {
+    const stateCopy = [...currentSquers]
+    const winner = calculateWinner(stateCopy)
+    if (winner || stateCopy[i]) return // ------------------------------------ Guard key
+
+    const newHistory = history.slice(0, currentStep + 1)
+
+    const nextValue = calculateNextValue(stateCopy)
+    stateCopy[i] = nextValue
+
+    setHistory([...newHistory, stateCopy])
+
+    setCurrentStep(newHistory.length)
+  }
+
+  function restart() {
+    setHistory([Array(9).fill(null)])
+    setCurrentStep(0)
+  }
+
+  const moves = history.map((stepSqueres, step) => {
+    const desc = step === 0 ? 'Go To Game Start' : `Go To Move #${step}`
+
+    const isCurrentStep = step === currentStep
+
+    return (
+      <li key={step}>
+        <button disabled={isCurrentStep} onClick={() => setCurrentStep(step)}>
+          {desc} {isCurrentStep ? '(Current)' : null}
+        </button>
+      </li>
+    )
+  })
+
+  // function historyHandle(){}
+
   return (
     <div className="game">
       <div className="game-board">
-        <Board />
+        <Board onClick={selectSquare} squares={currentSquers} />
+        <button className="restart" onClick={restart}>
+          restart
+        </button>
+      </div>
+      <div className="game-info">
+        <div>{status}</div>
+        <ol>{moves}</ol>
       </div>
     </div>
   )
