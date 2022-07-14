@@ -10,7 +10,7 @@ import * as React from 'react'
 // 🦉 You've learned all the hooks you need to know to refactor this Board
 // component to hooks. So, let's make it happen!
 
-class Board extends React.Component {
+class BoardClass extends React.Component {
   state = {
     squares:
       JSON.parse(window.localStorage.getItem('squares')) || Array(9).fill(null),
@@ -26,6 +26,7 @@ class Board extends React.Component {
     squaresCopy[square] = nextValue
     this.setState({squares: squaresCopy})
   }
+
   renderSquare = i => (
     <button className="square" onClick={() => this.selectSquare(i)}>
       {this.state.squares[i]}
@@ -81,6 +82,78 @@ class Board extends React.Component {
       </div>
     )
   }
+}
+
+function Board() {
+  const [squares, setSquares] = React.useState(
+    () =>
+      JSON.parse(window.localStorage.getItem('squares')) || Array(9).fill(null),
+  )
+
+  function selectSquare(square) {
+    const nextValue = calculateNextValue(squares)
+    if (calculateWinner(squares) || squares[square]) {
+      return
+    }
+    const squaresCopy = [...squares]
+    squaresCopy[square] = nextValue
+    setSquares(squaresCopy)
+  }
+
+  function renderSquare(i) {
+    return (
+      <button className="square" onClick={() => selectSquare(i)}>
+        {squares[i]}
+      </button>
+    )
+  }
+
+  function restart() {
+    setSquares(Array(9).fill(null))
+    updateLocalStorage()
+  }
+
+  const squaresRef = React.useRef(squares)
+
+  React.useEffect(() => {
+    updateLocalStorage()
+
+    const prevSquares = squaresRef.current
+
+    if (prevSquares !== squares) updateLocalStorage()
+  }, [squaresRef, squares])
+
+  function updateLocalStorage() {
+    window.localStorage.setItem('squares', JSON.stringify(squares))
+  }
+
+  const nextValue = calculateNextValue(squares)
+  const winner = calculateWinner(squares)
+  let status = calculateStatus(winner, squares, nextValue)
+
+  return (
+    <div>
+      <div className="status">{status}</div>
+      <div className="board-row">
+        {renderSquare(0)}
+        {renderSquare(1)}
+        {renderSquare(2)}
+      </div>
+      <div className="board-row">
+        {renderSquare(3)}
+        {renderSquare(4)}
+        {renderSquare(5)}
+      </div>
+      <div className="board-row">
+        {renderSquare(6)}
+        {renderSquare(7)}
+        {renderSquare(8)}
+      </div>
+      <button className="restart" onClick={restart}>
+        restart
+      </button>
+    </div>
+  )
 }
 
 function Game() {
