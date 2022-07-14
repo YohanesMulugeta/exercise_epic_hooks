@@ -36,57 +36,17 @@ function Board({squares, onClick}) {
   )
 }
 
-// ------------------------------------------------------------------------------------- HISTORY
-
-function History({squares, setSquares}) {
-  const [historyArray, setHistory] = useLocalStorageState('history', [
-    Array(9).fill(null),
-  ])
-
-  React.useEffect(() => {
-    const checkAllNull = squares.some(square => square !== null)
-    // const checkSimililarity = historyArray.filter(his => {})
-
-    console.log(checkAllNull)
-
-    if (!checkAllNull) setHistory([Array(9).fill(null)])
-    else {
-      const squaresCurrent = [...squares]
-      setHistory([...historyArray, squaresCurrent])
-    }
-  }, [squares])
-
-  function renderHistory() {
-    return historyArray.map((his, i) => {
-      return (
-        <button
-          disabled={i === historyArray.length - 1}
-          key={his}
-          id={i}
-          onClick={() => {
-            setSquares(historyArray[i])
-          }}
-        >
-          Go to{' '}
-          {`${i === 0 ? 'Game Start' : `Move #${i}`}${
-            i === historyArray.length - 1 ? '(Current)' : ''
-          }`}
-        </button>
-      )
-    })
-  }
-
-  console.log(historyArray)
-
-  return renderHistory()
-}
-
 // -------------------------------------------------------------------------------------- GAME
 
 function Game() {
   // -------------------------------------------------------------------------------- step state
-  const [currentStep, setCurrentStep] = React.useState(0)
-  const [history, setHistory] = React.useState([Array(9).fill(null)])
+  const [currentStep, setCurrentStep] = useLocalStorageState(
+    'tic-tac-toe:step',
+    0,
+  )
+  const [history, setHistory] = useLocalStorageState('tic-tac-toe:history', [
+    Array(9).fill(null),
+  ])
 
   const currentSquers = history[currentStep]
   const winner = calculateWinner(currentSquers)
