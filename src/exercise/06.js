@@ -16,9 +16,11 @@ import {
 function PokemonInfo({pokemonName}) {
   // 🐨 Have state for the pokemon (null)
 
-  const [pokemon, setPokemon] = React.useState(null)
-  const [status, setStatus] = React.useState('idle')
-  const [error, setError] = React.useState(null)
+  const [state, setState] = React.useState({
+    pokemon: null,
+    status: 'idle',
+    error: null,
+  })
 
   // 🐨 use React.useEffect where the callback should be called whenever the
   // pokemon name changes.
@@ -26,18 +28,14 @@ function PokemonInfo({pokemonName}) {
   React.useEffect(() => {
     if (!pokemonName) return
 
-    setPokemon(null)
-    setError(null)
-    setStatus('pending')
+    setState({status: 'pending', error: null, pokemon: null})
     fetchPokemon(pokemonName).then(
       pokemon => {
-        setPokemon(pokemon)
-        setStatus('resolved')
+        setState({status: 'resolved', pokemon: pokemon})
       },
 
       error => {
-        setError(error)
-        setStatus('rejected')
+        setState({error: error, status: 'rejected'})
       },
     )
   }, [pokemonName])
@@ -55,20 +53,22 @@ function PokemonInfo({pokemonName}) {
   //   3. pokemon: <PokemonDataView pokemon={pokemon} />
 
   // 💣 remove this
-  if (status === 'rejected') {
+  if (state.status === 'rejected') {
     return (
       <div role="alert">
         There was an eror:{' '}
-        <pre style={{whiteSpace: 'normal'}}>{error.message}</pre>
+        <pre style={{whiteSpace: 'normal'}}>{state.error.message}</pre>
       </div>
     )
   }
 
-  if (status === 'idle') return 'Submit a pokemon'
+  if (state.status === 'idle') return 'Submit a pokemon'
 
-  if (status === 'pending') return <PokemonInfoFallback name={pokemonName} />
+  if (state.status === 'pending')
+    return <PokemonInfoFallback name={pokemonName} />
 
-  if (status === 'resolved') return <PokemonDataView pokemon={pokemon} />
+  if (state.status === 'resolved')
+    return <PokemonDataView pokemon={state.pokemon} />
 }
 
 function App() {
