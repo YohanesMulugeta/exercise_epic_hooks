@@ -13,6 +13,36 @@ import {
   fetchPokemon,
 } from '../pokemon'
 
+class ErrorBaoundary extends React.Component {
+  constructor(props) {
+    super(props)
+
+    this.state = {hasError: false, error: null}
+  }
+
+  static getDerivedStateFromError(error) {
+    return {hasError: true, error}
+  }
+
+  // componentDidCatch(error, errorInfo) {
+  //   // this.setState({error: error})
+
+  // }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div role="alert">
+          {' '}
+          Something happend:
+          <pre style={{whiteSpace: 'normal'}}>{this.state.error.message}</pre>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
 function PokemonInfo({pokemonName}) {
   // 🐨 Have state for the pokemon (null)
 
@@ -21,9 +51,6 @@ function PokemonInfo({pokemonName}) {
     status: 'idle',
     error: null,
   })
-
-  // 🐨 use React.useEffect where the callback should be called whenever the
-  // pokemon name changes.
 
   React.useEffect(() => {
     if (!pokemonName) return
@@ -35,31 +62,15 @@ function PokemonInfo({pokemonName}) {
       },
 
       error => {
-        setState({error: error, status: 'rejected'})
+        // setState({error: error, status: 'rejected'})
+        setState({status: 'rejected', error: error})
+        throw error
       },
     )
   }, [pokemonName])
 
-  // 💰 if the pokemonName is falsy (an empty string) then don't bother making the request (exit early).
-  // 🐨 before calling `fetchPokemon`, clear the current pokemon state by setting it to null.
-  // (This is to enable the loading state when switching between different pokemon.)
-  // 💰 Use the `fetchPokemon` function to fetch a pokemon by its name:
-  //   fetchPokemon('Pikachu').then(
-  //     pokemonData => {/* update all the state here */},
-  //   )
-  // 🐨 return the following things based on the `pokemon` state and `pokemonName` prop:
-  //   1. no pokemonName: 'Submit a pokemon'
-  //   2. pokemonName but no pokemon: <PokemonInfoFallback name={pokemonName} />
-  //   3. pokemon: <PokemonDataView pokemon={pokemon} />
-
-  // 💣 remove this
   if (state.status === 'rejected') {
-    return (
-      <div role="alert">
-        There was an eror:{' '}
-        <pre style={{whiteSpace: 'normal'}}>{state.error.message}</pre>
-      </div>
-    )
+    throw state.error
   }
 
   if (state.status === 'idle') return 'Submit a pokemon'
@@ -83,7 +94,9 @@ function App() {
       <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
       <hr />
       <div className="pokemon-info">
-        <PokemonInfo pokemonName={pokemonName} />
+        <ErrorBaoundary key={pokemonName}>
+          <PokemonInfo pokemonName={pokemonName} />
+        </ErrorBaoundary>
       </div>
     </div>
   )
